@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dynamic Table</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .add-button {
+            margin-top: 10px;
+        }
+        
+        .delete-button {
+            margin-left: 5px;
+        }
+        
+        #dataContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Dynamic Table</h2>
+    
+    <label for="columnCount">Number of Columns:</label>
+    <input type="number" id="columnCount">
+    <button onclick="generateTable()">Generate Table</button>
+    
+    <div id="tableContainer"></div>
+    
+    <button onclick="displayData()">Display Data</button>
+    
+    <div id="dataContainer"></div>
+    
+ <script>
+    var jsonData = {
+        "environmentTypes": [
+            "dev",
+            "qa",
+            "sit"
+        ],
+        "departments": [
+            {
+                "name": "IT",
+                "subDepartments": [
+                    "IT-1",
+                    "IT-2"
+                ]
+            },
+            {
+                "name": "BPO",
+                "subDepartments": [
+                    "BPO-1",
+                    "BPO-2"
+                ]
+            }
+        ]
+    };
+    
+    function generateTable() {
+        var columnCount = parseInt($("#columnCount").val());
+        if (isNaN(columnCount) || columnCount < 1) {
+            alert("Please enter a valid number of columns.");
+            return;
+        }
+        
+        var tableHeaders = ['Department', 'Sub Department'];
+        for (var i = 1; i <= columnCount; i++) {
+            tableHeaders.push('Env Type ' + i);
+        }
+        
+        var tableContainer = $("#tableContainer");
+        tableContainer.empty();
+        
+        var table = $("<table></table>");
+        
+        var thead = $("<thead></thead>");
+        var tr = $("<tr></tr>");
+        
+        for (var j = 0; j < tableHeaders.length; j++) {
+            var th = $("<th></th>").text(tableHeaders[j]);
+            tr.append(th);
+        }
+        
+        thead.append(tr);
+        table.append(thead);
+        
+        var tbody = $("<tbody></tbody>");
+        
+        var row = $("<tr></tr>");
+        for (var k = 0; k < tableHeaders.length; k++) {
+            var td = $("<td></td>");
+            if (k === 0) {
+                var select = createDepartmentSelect("0");
+                td.append(select);
+            } else if (k === 1) {
+                var subDepartmentSelect = createSubDepartmentSelect("0");
+                td.append(subDepartmentSelect);
+            } else {
+                var select = createEnvTypeSelect("0",k);
+                td.append(select);
+            }
+            row.append(td);
+        }
+        tbody.append(row);
+        
+        table.append(tbody);
+        tableContainer.append(table);
+        
+        var addButton = $("<button></button>")
+            .addClass("add-button")
+            .text("Add Row")
+            .click(addRow);
+        tableContainer.append(addButton);
+        
+        function createDepartmentSelect(rowCountObj) {
+            var select = $("<select id='DEP"+rowCountObj+"'></select>");
+            $.each(jsonData.departments, function(index, department) {
+                select.append(createOption(department.name));
+            });
+            select.change(function() {
+                var selectedDepartment = $(this).val();
+                var subDepartmentSelect = $(this).closest("tr").find(".sub-department-select");
+                subDepartmentSelect.empty();
+                var department = jsonData.departments.find(function(d) {
+                    return d.name === selectedDepartment;
+                });
+                if (department) {
+                    $.each(department.subDepartments, function(index, subDepartment) {
+                        subDepartmentSelect.append(createOption(subDepartment));
+                    });
+                }
+            });
+            return select;
+        }
+        
+        function createSubDepartmentSelect(rowCountObj,colObj) {
+            var select = $("<select id='subDep"+rowCountObj+"_"+colObj+"'></select>").addClass("sub-department-select");
+            return select;
+        }
+        
+        function createEnvTypeSelect(rowCountObj) {
+            var select = $("<select id='envType"+rowCountObj+"'></select>");
+            $.each(jsonData.environmentTypes, function(index, envType) {
+                select.append(createOption(envType));
+            });
+            return select;
+        }
+        
+        function createOption(text) {
+            return $("<option></option>").text(text);
+        }
+        
+        var rowCount=0;
+        function addRow() {
+        	rowCount++;
+            var row = $("<tr></tr>");
+            for (var k = 0; k < tableHeaders.length; k++) {
+                var td = $("<td></td>");
+                if (k === 0) {
+                    var select = createDepartmentSelect(rowCount);
+                    td.append(select);
+                } else if (k === 1) {
+                    var subDepartmentSelect = createSubDepartmentSelect(rowCount);
+                    td.append(subDepartmentSelect);
+                } else {
+                    var select = createEnvTypeSelect(rowCount,k);
+                    td.append(select);
+                }
+                row.append(td);
+            }
+            tbody.append(row);
+        }
+    }
+    
+   function displayData() {
+    var rows = $("tbody tr");
+    if (rows.length === 0) {
+        alert("No data to display.");
+        return;
+    }
+
+    var dataContainer = $("#dataContainer");
+    dataContainer.empty();
+
+    var counts = {};
+
+    rows.each(function() {
+        var envType = $(this).find("td:nth-child(3) select").val();
+
+        if (envType) {
+            if (counts[envType]) {
+                counts[envType]++;
+            } else {
+                counts[envType] = 1;
+            }
+        }
+    });
+
+    var table = $("<table></table>");
+    var thead = $("<thead></thead>");
+    var tr = $("<tr></tr>");
+
+    tr.append($("<th></th>").text("Env Type"));
+    tr.append($("<th></th>").text("Count"));
+
+    thead.append(tr);
+    table.append(thead);
+
+    var tbody = $("<tbody></tbody>");
+
+    for (var envType in counts) {
+        var count = counts[envType];
+        var row = $("<tr></tr>");
+        row.append($("<td></td>").text(envType));
+        row.append($("<td></td>").text(count));
+        tbody.append(row);
+    }
+
+    table.append(tbody);
+    dataContainer.append(table);
+}
+
+
+</script>
+
+</body>
+</html>

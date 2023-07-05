@@ -1,1 +1,79 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Excel from Multiple Tables</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.rawgit.com/rainabba/jquery-table2excel/1.1.0/dist/jquery.table2excel.min.js"></script>
+</head>
+<body>
+  <table id="table1">
+    <tr>
+      <th>Name</th>
+      <th>Age</th>
+      <th>Email</th>
+    </tr>
+    <tr>
+      <td>John Doe</td>
+      <td>25</td>
+      <td>johndoe@example.com</td>
+    </tr>
+    <tr>
+      <td>Jane Smith</td>
+      <td>30</td>
+      <td>janesmith@example.com</td>
+    </tr>
+  </table>
+
+  <table id="table2">
+    <tr>
+      <th>Product</th>
+      <th>Price</th>
+    </tr>
+    <tr>
+      <td>Shirt</td>
+      <td>$20</td>
+    </tr>
+    <tr>
+      <td>Pants</td>
+      <td>$30</td>
+    </tr>
+  </table>
+
+  <button id="exportBtn">Export to Excel</button>
+
+  <script>
+    $(document).ready(function() {
+      $('#exportBtn').click(function() {
+        // Create a new Workbook
+        let workbook = new ExcelJS.Workbook();
+        
+        // Add worksheets to the Workbook
+        let worksheet1 = workbook.addWorksheet('Sheet 1');
+        let worksheet2 = workbook.addWorksheet('Sheet 2');
+        
+        // Get table data and populate worksheets
+        $('#table1 tr').each(function(row, tr) {
+          $(tr).find('th, td').each(function(col, td) {
+            let cellValue = $(td).text();
+            worksheet1.getCell(`${String.fromCharCode(65 + col)}${row + 1}`).value = cellValue;
+          });
+        });
+
+        $('#table2 tr').each(function(row, tr) {
+          $(tr).find('th, td').each(function(col, td) {
+            let cellValue = $(td).text();
+            worksheet2.getCell(`${String.fromCharCode(65 + col)}${row + 1}`).value = cellValue;
+          });
+        });
+        
+        // Save the workbook as an Excel file
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+          let blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          saveAs(blob, 'tables_data.xlsx'); // Specify the filename for the Excel file.
+        });
+      });
+    });
+  </script>
+</body>
+</html>

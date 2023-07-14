@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      font-size: 20px;
+    }
+
+    h3 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .button:hover {
+      opacity: 0.8;
+    }
+
+    .correct {
+      background-color: #8BC34A;
+    }
+
+    .incorrect {
+      background-color: #F44336;
+    }
+  </style>
+</head>
+<body>
+  <div id="question-container"></div>
+  <div id="answer-container"></div>
+  <div class="button-container">
+    <button class="button" id="previous-btn" onclick="previousQuestion()">Previous</button>
+    <button class="button" id="display-answer-btn" onclick="displayAnswer()">Display Answer</button>
+    <button class="button" id="next-btn" onclick="nextQuestion()">Next</button>
+  </div>
+
+  <script>
+    var jsonData = [
+      {
+        "question": "What is the capital of France?",
+        "options": ["Paris", "London", "Berlin"],
+        "answer": 0
+      },
+      {
+        "question": "What is the largest planet in our solar system?",
+        "options": ["Jupiter", "Saturn", "Neptune"],
+        "answer": 0
+      },
+      {
+        "question": "Who painted the Mona Lisa?",
+        "options": ["Leonardo da Vinci", "Pablo Picasso", "Vincent van Gogh"],
+        "answer": 0
+      }
+    ];
+
+    var questionIndex = 0;
+    var selectedAnswer = null;
+
+    function generateQuestion() {
+      var questionContainer = document.getElementById("question-container");
+      var answerContainer = document.getElementById("answer-container");
+      var questionData = jsonData[questionIndex];
+
+      var questionElement = document.createElement("h3");
+      questionElement.innerText = questionData.question;
+      questionContainer.innerHTML = "";
+      questionContainer.appendChild(questionElement);
+
+      for (var i = 0; i < questionData.options.length; i++) {
+        var radioLabel = document.createElement("label");
+        var radioInput = document.createElement("input");
+        radioInput.type = "radio";
+        radioInput.name = "answer";
+        radioInput.value = i;
+        radioInput.onclick = function() {
+          selectedAnswer = parseInt(this.value);
+          highlightAnswer();
+        };
+
+        radioLabel.appendChild(radioInput);
+        radioLabel.appendChild(document.createTextNode(questionData.options[i]));
+        questionContainer.appendChild(radioLabel);
+        questionContainer.appendChild(document.createElement("br"));
+      }
+
+      answerContainer.innerHTML = "";
+    }
+
+    function highlightAnswer() {
+      var questionData = jsonData[questionIndex];
+      var radioInputs = document.querySelectorAll('input[name="answer"]');
+
+      for (var i = 0; i < radioInputs.length; i++) {
+        var radioInput = radioInputs[i];
+        var label = radioInput.parentNode;
+
+        label.classList.remove("correct");
+        label.classList.remove("incorrect");
+
+        if (i === selectedAnswer && i !== questionData.answer) {
+          label.classList.add("incorrect");
+        } else if (i === questionData.answer) {
+          label.classList.add("correct");
+        }
+      }
+    }
+
+    function displayAnswer() {
+      var answerContainer = document.getElementById("answer-container");
+      var questionData = jsonData[questionIndex];
+
+      answerContainer.innerHTML = "";
+      var answerElement = document.createElement("p");
+      answerElement.innerText = "Correct Answer: " + questionData.options[questionData.answer];
+      answerContainer.appendChild(answerElement);
+    }
+
+    function nextQuestion() {
+      if (questionIndex < jsonData.length - 1) {
+        questionIndex++;
+        selectedAnswer = null;
+        generateQuestion();
+      }
+
+      var radioInputs = document.querySelectorAll('input[name="answer"]');
+      radioInputs.forEach(function(input) {
+        input.checked = false;
+      });
+    }
+
+    function previousQuestion() {
+      if (questionIndex > 0) {
+        questionIndex--;
+        selectedAnswer = null;
+        generateQuestion();
+      }
+
+      var radioInputs = document.querySelectorAll('input[name="answer"]');
+      radioInputs.forEach(function(input) {
+        input.checked = false;
+      });
+    }
+
+    generateQuestion();
+  </script>
+</body>
+</html>
